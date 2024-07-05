@@ -137,6 +137,14 @@ g git config --global --add safe.directory "${wd}"
 
 g git init
 
+
+GITHUB_PROTOCOL="${GITHUB_SERVER_URL%%://*}"
+GITHUB_HOSTNAME="${GITHUB_SERVER_URL#*://}"
+GIT_USERNAME="dummy"
+
+g git config --global credential.helper store
+echo "${GITHUB_PROTOCOL}://${GIT_USERNAME}:${INPUT_TOKEN}@${GITHUB_HOSTNAME}" >> ~/.git-credentials
+
 g git remote add origin "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}"
 
 g git config --local gc.auto 0
@@ -152,3 +160,7 @@ else
 fi
 
 g git config --global --add safe.directory "${wd}"
+
+if [[ "${INPUT_PERSIST_CREDENTIALS}" != "true" ]]; then
+    rm ~/.git-credentials
+fi
