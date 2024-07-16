@@ -149,13 +149,33 @@ g git remote add origin "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}"
 
 g git config --local gc.auto 0
 
+# if [[ "${GITHUB_REF}" == "refs/heads/"* ]]; then
+#     branch="${GITHUB_REF#refs/heads/}"
+#     remote_ref="refs/remotes/origin/${branch}"
+#     g retry git fetch --no-tags --prune --no-recurse-submodules --depth=1 origin "+${GITHUB_SHA}:${remote_ref}"
+#     g retry git checkout --force -B "${branch}" "${remote_ref}"
+# else
+#     g retry git fetch --no-tags --prune --no-recurse-submodules --depth=1 origin "+${GITHUB_SHA}:${GITHUB_REF}"
+#     g retry git checkout --force "${GITHUB_REF}"
+# fi
+
 if [[ "${GITHUB_REF}" == "refs/heads/"* ]]; then
     branch="${GITHUB_REF#refs/heads/}"
     remote_ref="refs/remotes/origin/${branch}"
-    g retry git fetch --no-tags --prune --no-recurse-submodules --depth=1 origin "+${GITHUB_SHA}:${remote_ref}"
+    fetch_ref="+${GITHUB_SHA}:${remote_ref}"
+else
+    fetch_ref="+${GITHUB_SHA}:${GITHUB_REF}"
+fi
+
+if [[ "${INPUT_FETCH_DEPTH}" == "0" ]]; then
+    g retry git fetch --prune --no-recurse-submodules origin "${fetch_ref}"
+else
+    g retry git fetch --no-tags --prune --no-recurse-submodules --depth="${INPUT_FETCH_DEPTH}" origin "${fetch_ref}"
+fi
+
+if [[ "${GITHUB_REF}" == "refs/heads/"* ]]; then
     g retry git checkout --force -B "${branch}" "${remote_ref}"
 else
-    g retry git fetch --no-tags --prune --no-recurse-submodules --depth=1 origin "+${GITHUB_SHA}:${GITHUB_REF}"
     g retry git checkout --force "${GITHUB_REF}"
 fi
 
