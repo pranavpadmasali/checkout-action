@@ -3,6 +3,17 @@
 set -eEuo pipefail
 IFS=$'\n\t'
 
+# Update wd if INPUT_PATH is set
+if [[ -n "${INPUT_PATH:-}" ]]; then
+    if [[ ! -d "${INPUT_PATH}" ]]; then
+        echo "Directory '${INPUT_PATH}' does not exist. Creating it..."
+        mkdir -p "${INPUT_PATH}"
+    fi
+    cd "${INPUT_PATH}"
+fi
+
+wd=$(pwd)
+
 g() {
     local cmd="$1"
     shift
@@ -68,8 +79,6 @@ sys_install() {
         alpine) apk_install "$@" ;;
     esac
 }
-
-wd=$(pwd)
 
 base_distro=""
 case "$(uname -s)" in
@@ -137,7 +146,6 @@ g git config --global --add safe.directory "${wd}"
 
 g git init
 
-
 GITHUB_PROTOCOL="${GITHUB_SERVER_URL%%://*}"
 GITHUB_HOSTNAME="${GITHUB_SERVER_URL#*://}"
 GIT_USERNAME="dummy"
@@ -148,16 +156,6 @@ echo "${GITHUB_PROTOCOL}://${GIT_USERNAME}:${INPUT_TOKEN}@${GITHUB_HOSTNAME}" >>
 g git remote add origin "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}"
 
 g git config --local gc.auto 0
-
-# if [[ "${GITHUB_REF}" == "refs/heads/"* ]]; then
-#     branch="${GITHUB_REF#refs/heads/}"
-#     remote_ref="refs/remotes/origin/${branch}"
-#     g retry git fetch --no-tags --prune --no-recurse-submodules --depth=1 origin "+${GITHUB_SHA}:${remote_ref}"
-#     g retry git checkout --force -B "${branch}" "${remote_ref}"
-# else
-#     g retry git fetch --no-tags --prune --no-recurse-submodules --depth=1 origin "+${GITHUB_SHA}:${GITHUB_REF}"
-#     g retry git checkout --force "${GITHUB_REF}"
-# fi
 
 if [[ "${GITHUB_REF}" == "refs/heads/"* ]]; then
     branch="${GITHUB_REF#refs/heads/}"

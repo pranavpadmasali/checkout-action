@@ -21,6 +21,8 @@ inputs:
   fetch-depth:
     description: 'Number of commits to fetch. 0 indicates all history for all branches and tags'
     default: 1
+  path:
+    description: 'Relative path under $GITHUB_WORKSPACE to place the repository'
 
 # Note:
 # - inputs.* should be manually mapped to INPUT_* due to https://github.com/actions/runner/issues/665
@@ -33,4 +35,5 @@ runs:
         INPUT_TOKEN: '${{ inputs.token }}'
         INPUT_PERSIST_CREDENTIALS: '${{ inputs.persist-credentials }}'
         INPUT_FETCH_DEPTH: '${{ inputs.fetch-depth }}'
+        INPUT_PATH: '${{ inputs.path }}'
       shell: bash
